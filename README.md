@@ -1,29 +1,69 @@
-# Create T3 App
+# CareerAI
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A modern career management platform built with Next.js, featuring AI-powered resume analysis and job matching.
 
-## What's next? How do I make an app with this?
+## Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- 🔐 Secure authentication with Clerk
+- 🌓 Dark/Light mode support
+- 📊 ATS score analysis
+- 📝 Resume management
+- 🔍 Job tracking
+- 💼 Professional profile management
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- [Next.js 14](https://nextjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Shadcn/ui](https://ui.shadcn.com/)
+- [Clerk Auth](https://clerk.com/)
+- [Supabase](https://supabase.com/)
+- [tRPC](https://trpc.io/)
 
-## Learn More
+## Getting Started
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+1. Clone the repository:
+```bash
+git clone https://github.com/sanjaymalladi/career-ai.git
+cd career-ai
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+3. Create a `.env.local` file in the root directory and add your environment variables:
+```env
+# Clerk Auth
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
+CLERK_SECRET_KEY=your_secret_key
 
-## How do I deploy this?
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+4. Run the development server:
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Deployment
+
+The project is configured for deployment on Netlify. The `netlify.toml` file contains the necessary build configuration.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+-[] connect with netlify
+-[] connect frontend to backend
+-[] make ui better
+-[] make carrer ai to carrer advise
+-[] add api to find jobs
+-[] add opensource logic and api for ats score
+-[] add tips on how to improve linkedin and github and tips like projects and skills to learn
