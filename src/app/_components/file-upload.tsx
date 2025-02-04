@@ -1,77 +1,100 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { supabasePublic } from "~/lib/supabase";
 
-export function FileUpload() {
-  const { userId } = useAuth();
+export default function FileUpload() {
+  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setError(null);
+      setUploadedUrl(null);
+    }
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    setError(null);
+    setUploadedUrl(null);
+
     try {
-      if (!e.target.files || !e.target.files[0]) return;
-      if (!userId) {
-        alert("Please sign in to upload files");
-        return;
-      }
-
-      const file = e.target.files[0];
-      setUploading(true);
-
-      // Upload file to Supabase storage
-      const { data, error } = await supabasePublic.storage
-        .from("files")
-        .upload(`${userId}/${file.name}`, file, {
-          cacheControl: "3600",
-          upsert: true,
+      const filename = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabasePublic.storage
+        .from('resumes')
+        .upload(filename, file, {
+          cacheControl: '3600',
+          upsert: false
         });
 
-      if (error) {
-        throw error;
-      }
+      if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: publicUrl } = supabasePublic.storage
-        .from("files")
-        .getPublicUrl(data.path);
+      const { data: { publicUrl } } = supabasePublic.storage
+        .from('resumes')
+        .getPublicUrl(filename);
 
-      setUploadedUrl(publicUrl.publicUrl);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      alert("Error uploading file");
+      setUploadedUrl(publicUrl);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload file');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center gap-4">
-        <input
-          type="file"
-          onChange={handleFileUpload}
-          disabled={uploading}
-          className="hidden"
-          id="file-upload"
-        />
-        <label
-          htmlFor="file-upload"
-          className="cursor-pointer rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">File Upload Test</h2>
+      
+      <form onSubmit={handleUpload} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Select File
+          </label>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={!file || uploading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md
+            hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed"
         >
-          {uploading ? "Uploading..." : "Upload File"}
-        </label>
-      </div>
+          {uploading ? 'Uploading...' : 'Upload'}
+        </button>
+      </form>
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-md">
+          {error}
+        </div>
+      )}
 
       {uploadedUrl && (
-        <div className="mt-4 flex flex-col items-center gap-2">
-          <p>File uploaded successfully!</p>
+        <div className="mt-4 p-4 bg-green-50 text-green-600 rounded-md">
+          File uploaded successfully!
           <a
             href={uploadedUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:underline"
+            className="block mt-2 text-blue-600 hover:underline"
           >
             View uploaded file
           </a>

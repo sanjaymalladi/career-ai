@@ -1,66 +1,81 @@
-export type Database = {
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export interface Database {
   public: {
     Tables: {
-      jobs: {
+      users: {
         Row: {
           id: string
-          title: string
-          description: string
-          skills_required: string
+          name: string | null
+          email: string | null
+          linkedin_url: string | null
+          github_url: string | null
+          created_at: string
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          title: string
-          description: string
-          skills_required: string
+          id: string
+          name?: string | null
+          email?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          title?: string
-          description?: string
-          skills_required?: string
+          name?: string | null
+          email?: string | null
+          linkedin_url?: string | null
+          github_url?: string | null
+          created_at?: string
+          updated_at?: string | null
         }
       }
       resumes: {
         Row: {
           id: string
-          ats_score: number
           user_id: string
+          file_url: string
+          file_path: string
+          ats_score: number
+          created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
-          ats_score: number
           user_id: string
-        }
-        Update: {
-          id?: string
+          file_url: string
+          file_path: string
           ats_score?: number
-          user_id?: string
-        }
-      }
-      users: {
-        Row: {
-          id: string
-          name: string
-          email: string
-          linkedin_url: string
-          github_url: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          email: string
-          linkedin_url?: string
-          github_url?: string
+          created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          name?: string
-          email?: string
-          linkedin_url?: string
-          github_url?: string
+          user_id?: string
+          file_url?: string
+          file_path?: string
+          ats_score?: number
+          created_at?: string
+          updated_at?: string | null
         }
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 } 

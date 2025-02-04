@@ -1,109 +1,138 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabasePublic } from "~/lib/supabase";
+import type { Database } from "~/types/database.types";
 
-export function SupabaseTest() {
-  const [buckets, setBuckets] = useState<string[]>([]);
+type User = Database['public']['Tables']['users']['Row'];
+type Resume = Database['public']['Tables']['resumes']['Row'];
+
+export default function SupabaseTest() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
-
-  const addDebugInfo = (info: string) => {
-    console.log('Debug:', info);
-    setDebugInfo(prev => [...prev, info]);
-  };
 
   useEffect(() => {
-    async function testSupabase() {
+    async function fetchData() {
       try {
-        addDebugInfo("Starting Supabase test...");
+        const [usersResponse, resumesResponse] = await Promise.all([
+          supabasePublic.from('users').select('*'),
+          supabasePublic.from('resumes').select('*')
+        ]);
 
-        // Test 1: List buckets
-        addDebugInfo("Attempting to list buckets...");
-        const { data: bucketsData, error: bucketsError } = await supabasePublic
-          .storage
-          .listBuckets();
+        if (usersResponse.error) throw usersResponse.error;
+        if (resumesResponse.error) throw resumesResponse.error;
 
-        if (bucketsError) {
-          addDebugInfo(`Bucket list error: ${bucketsError.message}`);
-          throw bucketsError;
-        }
-
-        addDebugInfo(`Found ${bucketsData.length} buckets`);
-        setBuckets(bucketsData.map(b => b.name));
-
-        // Test 2: Try to create a test file
-        const testBucket = bucketsData[0]?.name;
-        if (!testBucket) {
-          const noBucketsError = "No storage buckets found. Please create a bucket in your Supabase dashboard.";
-          addDebugInfo(noBucketsError);
-          setError(noBucketsError);
-          return;
-        }
-
-        addDebugInfo(`Attempting to upload test file to bucket: ${testBucket}`);
-        const { error: uploadError } = await supabasePublic
-          .storage
-          .from(testBucket)
-          .upload('test.txt', new Blob(['test content']), {
-            upsert: true
-          });
-
-        if (uploadError) {
-          addDebugInfo(`Upload error: ${uploadError.message}`);
-          throw uploadError;
-        }
-
-        addDebugInfo("File upload successful!");
-        setTestResult("✅ Supabase storage is working correctly!");
+        setUsers(usersResponse.data);
+        setResumes(resumesResponse.data);
       } catch (err) {
-        console.error('Supabase test error:', err);
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-        addDebugInfo(`Error caught: ${errorMessage}`);
-        setError(errorMessage);
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } finally {
+        setLoading(false);
       }
     }
 
-    void testSupabase();
+    void fetchData();
   }, []);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <div className="flex flex-col items-center gap-4 p-4 bg-white/5 rounded-lg max-w-2xl w-full">
-      <h2 className="text-xl font-bold">Supabase Storage Test</h2>
-      
-      {error ? (
-        <div className="text-red-400">
-          Error: {error}
-        </div>
-      ) : testResult ? (
-        <div className="text-green-400">
-          {testResult}
-        </div>
-      ) : (
-        <div className="text-yellow-400">
-          Testing Supabase connection...
-        </div>
-      )}
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-6">Supabase Test</h2>
 
-      {buckets.length > 0 && (
-        <div className="mt-4">
-          <h3 className="font-semibold">Available buckets:</h3>
-          <ul className="list-disc list-inside">
-            {buckets.map(bucket => (
-              <li key={bucket}>{bucket}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div className="space-y-8">
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Users ({users.length})</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Links</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex space-x-4">
+                        {user.linkedin_url && (
+                          <a
+                            href={user.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            LinkedIn
+                          </a>
+                        )}
+                        {user.github_url && (
+                          <a
+                            href={user.github_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            GitHub
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-      <div className="mt-4 w-full">
-        <h3 className="font-semibold">Debug Log:</h3>
-        <pre className="bg-black/30 p-4 rounded-lg text-sm overflow-x-auto">
-          {debugInfo.map((info, i) => (
-            <div key={i}>{info}</div>
-          ))}
-        </pre>
+        <section>
+          <h3 className="text-xl font-semibold mb-4">Resumes ({resumes.length})</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ATS Score</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {resumes.map((resume) => (
+                  <tr key={resume.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{resume.user_id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{resume.ats_score}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {new Date(resume.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <a
+                        href={resume.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        View Resume
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </div>
   );
