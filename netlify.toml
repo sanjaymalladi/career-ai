@@ -1,9 +1,10 @@
 [build]
-  command = "npm run build"
+  command = "CI=false npm run build"
   publish = ".next"
 
 [build.environment]
   NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_SHARP_PATH = "/tmp/node_modules/sharp"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs" 
